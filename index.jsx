@@ -1,459 +1,140 @@
-import { useState } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Content Engine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #080808; color: #e8e8e8; font-family: 'DM Mono', monospace; min-height: 100vh; }
+  .wrap { max-width: 700px; margin: 0 auto; padding: 48px 24px 80px; }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 72px; line-height: 0.9; color: #fff; margin-bottom: 4px; }
+  h1 span { color: #C8F96A; }
+  .sub { font-size: 11px; letter-spacing: 3px; color: #444; text-transform: uppercase; margin-bottom: 16px; }
+  .desc { font-size: 12px; color: #555; margin-bottom: 40px; line-height: 1.7; }
+  label { display: block; font-size: 10px; letter-spacing: 3px; color: #555; text-transform: uppercase; margin-bottom: 8px; margin-top: 20px; }
+  input, textarea, select { width: 100%; background: #111; border: 1.5px solid #222; color: #e8e8e8; font-family: 'DM Mono', monospace; font-size: 13px; padding: 12px 14px; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  input:focus, textarea:focus, select:focus { border-color: #C8F96A; }
+  textarea { resize: vertical; line-height: 1.7; }
+  .btn { width: 100%; margin-top: 32px; background: #C8F96A; color: #080808; font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; padding: 16px; border: none; cursor: pointer; transition: opacity 0.2s; }
+  .btn:hover { opacity: 0.85; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  .voice-card { border: 1.5px solid #222; padding: 14px; cursor: pointer; transition: all 0.2s; background: #111; }
+  .voice-card:hover { border-color: #555; }
+  .voice-card.active { border-color: #C8F96A; background: #1a2200; }
+  .voice-name { font-size: 12px; color: #C8F96A; margin-bottom: 4px; }
+  .voice-desc { font-size: 11px; color: #555; line-height: 1.5; }
+  .type-card { border: 1.5px solid #222; padding: 14px 16px; cursor: pointer; transition: all 0.2s; background: #111; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .type-card:hover { border-color: #555; }
+  .type-card.active { border-color: #C8F96A; background: #1a2200; }
+  .type-name { font-size: 12px; color: #fff; margin-bottom: 3px; }
+  .type-desc { font-size: 11px; color: #555; }
+  .spinner { width: 36px; height: 36px; border: 2px solid #222; border-top: 2px solid #C8F96A; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading { text-align: center; padding: 60px 0; }
+  .loading p { font-size: 11px; letter-spacing: 3px; color: #555; text-transform: uppercase; }
+  .output-box { background: #0f0f0f; border: 1px solid #1e1e1e; padding: 28px; margin-top: 12px; }
+  .section-label { font-size: 10px; letter-spacing: 3px; color: #C8F96A; text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #1a1a1a; }
+  .section-content { font-size: 12px; color: #aaa; line-height: 2; white-space: pre-wrap; margin-bottom: 32px; }
+  .copy-btn { background: transparent; border: 1px solid #333; color: #666; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all 0.2s; margin-right: 8px; margin-top: 8px; }
+  .copy-btn:hover { border-color: #C8F96A; color: #C8F96A; }
+  .error { background: #1a0000; border: 1px solid #440000; padding: 20px; color: #ff6666; font-size: 12px; line-height: 1.7; margin-top: 20px; }
+  .divider { height: 1px; background: #1a1a1a; margin: 32px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="sub">Content Engine · Marketing Agencies</div>
+  <h1>CONTENT<br><span>FACTORY</span></h1>
+  <p class="desc">One input. One minute. Full content package.<br>Article · Meta · 5 Social Posts · Newsletter.</p>
  
-// ─── PROMPT SYSTEM ────────────────────────────────────────────────────────────
+  <div id="form-section">
+    <label>Agency Name</label>
+    <input type="text" id="agencyName" placeholder="e.g. Bold & Co. Marketing" />
+    <label>Agency Specialty</label>
+    <input type="text" id="agencySpecialty" placeholder="e.g. performance marketing for D2C e-commerce brands" />
+    <label>Their Target Audience</label>
+    <input type="text" id="targetAudience" placeholder="e.g. CMOs at B2B SaaS companies with $5M-$50M ARR" />
+    <label>Brand Voice</label>
+    <div class="grid2">
+      <div class="voice-card active" onclick="selectVoice(this,'Authority')"><div class="voice-name">Authority</div><div class="voice-desc">Confident, data-driven, no fluff.</div></div>
+      <div class="voice-card" onclick="selectVoice(this,'Conversational')"><div class="voice-name">Conversational</div><div class="voice-desc">Warm, relatable, zero corporate speak.</div></div>
+      <div class="voice-card" onclick="selectVoice(this,'Bold & Edgy')"><div class="voice-name">Bold & Edgy</div><div class="voice-desc">Contrarian, provocative, fearless.</div></div>
+      <div class="voice-card" onclick="selectVoice(this,'Educational')"><div class="voice-name">Educational</div><div class="voice-desc">Clear steps, examples, analogies.</div></div>
+    </div>
+    <div class="divider"></div>
+    <label>Article Topic</label>
+    <textarea id="topic" rows="3" placeholder="e.g. Why most agencies fail at retainer pricing and how to fix it"></textarea>
+    <label>Primary SEO Keyword</label>
+    <input type="text" id="keyword" placeholder="e.g. marketing agency retainer pricing" />
+    <label>Article Type</label>
+    <div>
+      <div class="type-card active" onclick="selectType(this,'SEO Deep-Dive')"><div><div class="type-name">SEO Deep-Dive</div><div class="type-desc">1,500-word pillar article targeting a high-volume keyword</div></div><span class="check" style="color:#C8F96A">✓</span></div>
+      <div class="type-card" onclick="selectType(this,'Thought Leadership')"><div><div class="type-name">Thought Leadership</div><div class="type-desc">Opinion piece positioning the agency as an industry voice</div></div><span class="check" style="display:none;color:#C8F96A">✓</span></div>
+      <div class="type-card" onclick="selectType(this,'How-To Guide')"><div><div class="type-name">How-To Guide</div><div class="type-desc">Step-by-step tactical guide clients can implement immediately</div></div><span class="check" style="display:none;color:#C8F96A">✓</span></div>
+      <div class="type-card" onclick="selectType(this,'Case Study Story')"><div><div class="type-name">Case Study Story</div><div class="type-desc">Narrative case study showing client transformation</div></div><span class="check" style="display:none;color:#C8F96A">✓</span></div>
+    </div>
+    <button class="btn" onclick="generate()">GENERATE CONTENT PACKAGE</button>
+  </div>
  
-const BRAND_VOICES = {
-  "Authority": "Write with commanding expertise. Use data, cite trends, make bold declarative statements. Tone: confident, direct, no fluff. The agency sounds like the smartest person in the room.",
-  "Conversational": "Write like a trusted industry friend. Use contractions, short sentences, occasional questions to the reader. Tone: warm, approachable, relatable. Zero corporate speak.",
-  "Bold & Edgy": "Challenge conventions. Open with a contrarian take. Use provocative hooks. Don't hedge. Tone: disruptive, fearless, sharp. The agency has opinions and isn't afraid to share them.",
-  "Educational": "Break complex marketing concepts into clear, digestible steps. Use numbered lists, examples, and analogies. Tone: patient, thorough, helpful. The agency is a great teacher.",
-};
- 
-const ARTICLE_TYPES = {
-  "SEO Deep-Dive": {
-    desc: "1,500-word pillar article targeting a high-volume keyword",
-    structure: "Hook → Problem framing → 5 detailed sections with H2s → Practical takeaways → CTA",
-  },
-  "Thought Leadership": {
-    desc: "Opinion piece positioning the agency as an industry voice",
-    structure: "Bold opening claim → Supporting argument × 3 → Industry trend tie-in → Forward-looking close",
-  },
-  "How-To Guide": {
-    desc: "Step-by-step tactical guide clients can implement immediately",
-    structure: "Problem → Why this matters → 7 actionable steps → Common mistakes → Result they can expect",
-  },
-  "Case Study Story": {
-    desc: "Narrative case study showing client transformation",
-    structure: "Before state → The challenge → The approach → The results (with numbers) → What this means for you",
-  },
-};
- 
-// ─── MASTER PROMPT BUILDER ────────────────────────────────────────────────────
- 
-function buildPrompt({ agencyName, agencySpecialty, targetAudience, topic, keyword, brandVoice, articleType }) {
-  const voice = BRAND_VOICES[brandVoice];
-  const type = ARTICLE_TYPES[articleType];
- 
-  return `You are a senior content strategist writing for ${agencyName}, a marketing agency specializing in ${agencySpecialty}.
- 
-BRAND VOICE: ${voice}
- 
-TARGET AUDIENCE: ${targetAudience} — these are the people reading this article. Write directly to them. Understand their pain points, their jargon, their goals.
- 
-ARTICLE TYPE: ${articleType}
-Description: ${type.desc}
-Structure to follow: ${type.structure}
- 
-TOPIC: ${topic}
-PRIMARY KEYWORD: "${keyword}" — include naturally 4–6 times. Never keyword-stuff.
- 
-─── DELIVERABLE FORMAT ───
- 
-Produce the following complete package. Use these exact headers:
- 
-## ARTICLE TITLE
-(Write 3 title options. Mark the strongest with ★)
- 
-## META DESCRIPTION
-(155 characters max. Include keyword. Compelling enough to earn the click.)
- 
-## FULL ARTICLE
-(Write the complete article following the structure above. Minimum 1,400 words. Use H2 and H3 subheadings. Open with a hook that stops the scroll. Close with a clear CTA relevant to ${agencyName}.)
- 
-## 5 SOCIAL POSTS
-(One for each platform: LinkedIn, Twitter/X, Instagram caption, Facebook, and a short-form TikTok/Reels hook. Each must stand alone. Do not just copy the article intro.)
- 
-## EMAIL NEWSLETTER SUMMARY
-(150–200 words. Written as if the agency is emailing their list. Warm, personal opener. Tease the article's value. End with a link placeholder: [READ THE FULL ARTICLE →])
- 
-─── QUALITY RULES ───
-- No filler phrases: "In today's digital landscape", "In conclusion", "It's important to note"
-- No passive voice more than once per section
-- Every section must deliver one concrete, actionable insight
-- The article must make ${agencyName} look like the definitive expert on this topic`;
-}
- 
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
- 
-const STEPS = ["Agency Profile", "Article Setup", "Generate"];
- 
-export default function App() {
-  const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [output, setOutput] = useState(null);
-  const [error, setError] = useState(null);
-  const [copied, setCopied] = useState(false);
-  const [activeSection, setActiveSection] = useState(null);
- 
-  const [form, setForm] = useState({
-    agencyName: "",
-    agencySpecialty: "",
-    targetAudience: "",
-    topic: "",
-    keyword: "",
-    brandVoice: "Authority",
-    articleType: "SEO Deep-Dive",
-  });
- 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
- 
-  const canNext = () => {
-    if (step === 0) return form.agencyName && form.agencySpecialty && form.targetAudience;
-    if (step === 1) return form.topic && form.keyword;
-    return true;
-  };
- 
-  const generate = async () => {
-    setLoading(true);
-    setError(null);
-    setOutput(null);
-    setActiveSection(null);
-    try {
-      const prompt = buildPrompt(form);
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 4000,
-          messages: [{ role: "user", content: prompt }],
-        }),
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message);
-      const text = data.content?.find(b => b.type === "text")?.text || "";
-      setOutput(parseOutput(text));
-    } catch (e) {
-      setError(e.message || "Generation failed. Check your API key.");
-    } finally {
-      setLoading(false);
-    }
-  };
- 
-  const parseOutput = (raw) => {
-    const sections = {};
-    const markers = [
-      { key: "titles", label: "ARTICLE TITLE" },
-      { key: "meta", label: "META DESCRIPTION" },
-      { key: "article", label: "FULL ARTICLE" },
-      { key: "social", label: "5 SOCIAL POSTS" },
-      { key: "email", label: "EMAIL NEWSLETTER SUMMARY" },
-    ];
-    for (let i = 0; i < markers.length; i++) {
-      const start = raw.indexOf(`## ${markers[i].label}`);
-      const end = i + 1 < markers.length ? raw.indexOf(`## ${markers[i + 1].label}`) : raw.length;
-      if (start !== -1) {
-        sections[markers[i].key] = raw.slice(start + markers[i].label.length + 4, end).trim();
-      }
-    }
-    sections.raw = raw;
-    return sections;
-  };
- 
-  const copyAll = () => {
-    navigator.clipboard.writeText(output?.raw || "");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
- 
-  const sectionLabels = [
-    { key: "titles", icon: "◈", label: "Titles" },
-    { key: "meta", icon: "◉", label: "Meta" },
-    { key: "article", icon: "▤", label: "Article" },
-    { key: "social", icon: "◎", label: "Social" },
-    { key: "email", icon: "◻", label: "Email" },
-  ];
- 
-  return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#F5F2EB",
-      fontFamily: "'DM Serif Display', Georgia, serif",
-      color: "#1a1a1a",
-    }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
-        input, textarea, select {
-          font-family: 'DM Mono', monospace;
-          font-size: 13px;
-          background: #fff;
-          border: 1.5px solid #E0DAD0;
-          color: #1a1a1a;
-          padding: 12px 14px;
-          width: 100%;
-          outline: none;
-          border-radius: 0;
-          transition: border-color 0.2s;
-          -webkit-appearance: none;
-        }
-        input:focus, textarea:focus, select:focus { border-color: #1a1a1a; }
-        textarea { resize: vertical; line-height: 1.7; }
-        .btn-primary {
-          background: #1a1a1a; color: #F5F2EB;
-          font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 3px;
-          text-transform: uppercase; padding: 14px 32px; border: none; cursor: pointer;
-          transition: all 0.2s; width: 100%;
-        }
-        .btn-primary:hover:not(:disabled) { background: #2d2d2d; }
-        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-sec {
-          background: transparent; color: #888;
-          font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px;
-          text-transform: uppercase; padding: 14px 32px; border: 1.5px solid #ddd; cursor: pointer;
-          transition: all 0.2s;
-        }
-        .btn-sec:hover { border-color: #999; color: #1a1a1a; }
-        .voice-card {
-          border: 1.5px solid #E0DAD0; padding: 14px 16px; cursor: pointer;
-          transition: all 0.2s; background: #fff;
-        }
-        .voice-card:hover { border-color: #999; }
-        .voice-card.active { border-color: #1a1a1a; background: #1a1a1a; color: #F5F2EB; }
-        .section-tab {
-          font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px;
-          text-transform: uppercase; padding: 10px 16px; cursor: pointer;
-          border-bottom: 2px solid transparent; background: none; border-top: none;
-          border-left: none; border-right: none; color: #999; transition: all 0.2s;
-        }
-        .section-tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
-        .section-tab:hover { color: #1a1a1a; }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-        .fade-up { animation: fadeUp 0.4s ease forwards; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner { animation: spin 1s linear infinite; }
-        .progress-dot { width: 8px; height: 8px; border-radius: 50%; transition: all 0.3s; }
-      `}</style>
- 
-      {/* Header */}
-      <div style={{ borderBottom: "1.5px solid #E0DAD0", padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#F5F2EB" }}>
-        <div>
-          <div style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 4, color: "#999", textTransform: "uppercase", marginBottom: 4 }}>Content Engine · Marketing Agencies</div>
-          <div style={{ fontSize: 22, fontStyle: "italic", color: "#1a1a1a" }}>The Content Factory</div>
-        </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          {STEPS.map((s, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div className="progress-dot" style={{
-                  background: i < step ? "#1a1a1a" : i === step ? "#C8A45A" : "#E0DAD0",
-                  width: i === step ? 10 : 8, height: i === step ? 10 : 8,
-                }} />
-                <span style={{ fontFamily: "'DM Mono'", fontSize: 10, color: i === step ? "#1a1a1a" : "#bbb", letterSpacing: 1, textTransform: "uppercase" }}>{s}</span>
-              </div>
-              {i < STEPS.length - 1 && <div style={{ width: 20, height: 1, background: "#E0DAD0" }} />}
-            </div>
-          ))}
-        </div>
+  <div id="output-section" style="display:none;margin-top:40px;">
+    <div id="loading" class="loading" style="display:none;"><div class="spinner"></div><p>Generating full content package</p></div>
+    <div id="error" class="error" style="display:none;"></div>
+    <div id="result" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div><div class="sub">Package Ready</div><div style="font-family:'Bebas Neue';font-size:28px;color:#fff" id="result-agency"></div></div>
+        <div><button class="copy-btn" onclick="copyAll()">Copy All</button><button class="copy-btn" onclick="reset()">New Run</button></div>
       </div>
- 
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px 80px" }}>
- 
-        {/* STEP 0 — Agency Profile */}
-        {step === 0 && (
-          <div className="fade-up">
-            <h2 style={{ fontSize: 32, fontStyle: "italic", marginBottom: 8 }}>Agency Profile</h2>
-            <p style={{ fontFamily: "'DM Mono'", fontSize: 12, color: "#999", marginBottom: 40, lineHeight: 1.7 }}>
-              This profile is saved once per client. The engine uses it on every content run.
-            </p>
- 
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <div>
-                <label style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 3, color: "#999", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Agency Name</label>
-                <input value={form.agencyName} onChange={e => set("agencyName", e.target.value)} placeholder="e.g. Bold & Co. Marketing" />
-              </div>
-              <div>
-                <label style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 3, color: "#999", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Agency Specialty</label>
-                <input value={form.agencySpecialty} onChange={e => set("agencySpecialty", e.target.value)} placeholder="e.g. performance marketing for D2C e-commerce brands" />
-              </div>
-              <div>
-                <label style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 3, color: "#999", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Their Target Audience</label>
-                <input value={form.targetAudience} onChange={e => set("targetAudience", e.target.value)} placeholder="e.g. CMOs at B2B SaaS companies with $5M–$50M ARR" />
-              </div>
- 
-              <div>
-                <label style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 3, color: "#999", textTransform: "uppercase", display: "block", marginBottom: 12 }}>Brand Voice</label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  {Object.keys(BRAND_VOICES).map(v => (
-                    <div key={v} className={`voice-card ${form.brandVoice === v ? "active" : ""}`} onClick={() => set("brandVoice", v)}>
-                      <div style={{ fontFamily: "'DM Mono'", fontSize: 11, letterSpacing: 1, marginBottom: 4 }}>{v}</div>
-                      <div style={{ fontSize: 11, opacity: 0.6, lineHeight: 1.5, fontFamily: "'DM Mono'" }}>
-                        {BRAND_VOICES[v].split(".")[0]}.
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
- 
-            <div style={{ marginTop: 40 }}>
-              <button className="btn-primary" disabled={!canNext()} onClick={() => setStep(1)}>
-                Next → Article Setup
-              </button>
-            </div>
-          </div>
-        )}
- 
-        {/* STEP 1 — Article Setup */}
-        {step === 1 && (
-          <div className="fade-up">
-            <h2 style={{ fontSize: 32, fontStyle: "italic", marginBottom: 8 }}>Article Setup</h2>
-            <p style={{ fontFamily: "'DM Mono'", fontSize: 12, color: "#999", marginBottom: 40, lineHeight: 1.7 }}>
-              One topic. One keyword. One article type. The engine handles the rest.
-            </p>
- 
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <div>
-                <label style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 3, color: "#999", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Article Topic</label>
-                <textarea value={form.topic} onChange={e => set("topic", e.target.value)} rows={3}
-                  placeholder="e.g. Why most agencies fail at retainer pricing — and how to fix it" />
-              </div>
-              <div>
-                <label style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 3, color: "#999", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Primary SEO Keyword</label>
-                <input value={form.keyword} onChange={e => set("keyword", e.target.value)} placeholder="e.g. marketing agency retainer pricing" />
-              </div>
- 
-              <div>
-                <label style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 3, color: "#999", textTransform: "uppercase", display: "block", marginBottom: 12 }}>Article Type</label>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {Object.entries(ARTICLE_TYPES).map(([k, v]) => (
-                    <div key={k} className={`voice-card ${form.articleType === k ? "active" : ""}`}
-                      onClick={() => set("articleType", k)}
-                      style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <div style={{ fontFamily: "'DM Mono'", fontSize: 11, letterSpacing: 1, marginBottom: 3 }}>{k}</div>
-                        <div style={{ fontSize: 11, opacity: 0.6, fontFamily: "'DM Mono'" }}>{v.desc}</div>
-                      </div>
-                      {form.articleType === k && <div style={{ fontSize: 18, opacity: 0.6 }}>✓</div>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
- 
-            <div style={{ marginTop: 40, display: "flex", gap: 12 }}>
-              <button className="btn-sec" onClick={() => setStep(0)} style={{ width: "30%" }}>← Back</button>
-              <button className="btn-primary" style={{ width: "70%" }} disabled={!canNext()} onClick={() => { setStep(2); generate(); }}>
-                Generate Package →
-              </button>
-            </div>
-          </div>
-        )}
- 
-        {/* STEP 2 — Output */}
-        {step === 2 && (
-          <div className="fade-up">
-            {loading && (
-              <div style={{ textAlign: "center", padding: "80px 0" }}>
-                <div style={{
-                  width: 40, height: 40, border: "2px solid #E0DAD0", borderTop: "2px solid #1a1a1a",
-                  borderRadius: "50%", margin: "0 auto 24px",
-                }} className="spinner" />
-                <div style={{ fontFamily: "'DM Mono'", fontSize: 11, letterSpacing: 3, color: "#999", textTransform: "uppercase" }}>
-                  Generating full content package…
-                </div>
-                <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: "#bbb", marginTop: 12 }}>
-                  Article · Meta · 5 Social Posts · Newsletter
-                </div>
-              </div>
-            )}
- 
-            {error && (
-              <div style={{ padding: "32px", background: "#fff0f0", border: "1.5px solid #ffcccc" }}>
-                <div style={{ fontFamily: "'DM Mono'", fontSize: 11, color: "#cc3333", letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Generation Error</div>
-                <div style={{ fontFamily: "'DM Mono'", fontSize: 12, color: "#666" }}>{error}</div>
-                <button className="btn-sec" style={{ marginTop: 20 }} onClick={() => { setStep(1); setError(null); }}>← Try Again</button>
-              </div>
-            )}
- 
-            {output && !loading && (
-              <div className="fade-up">
-                {/* Header bar */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-                  <div>
-                    <div style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 3, color: "#999", textTransform: "uppercase", marginBottom: 4 }}>Content Package Ready</div>
-                    <div style={{ fontSize: 22, fontStyle: "italic" }}>{form.agencyName}</div>
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button className="btn-sec" style={{ padding: "10px 20px", fontSize: 10 }} onClick={copyAll}>
-                      {copied ? "✓ Copied" : "Copy All"}
-                    </button>
-                    <button className="btn-sec" style={{ padding: "10px 20px", fontSize: 10 }} onClick={() => { setStep(0); setOutput(null); setForm({ agencyName: "", agencySpecialty: "", targetAudience: "", topic: "", keyword: "", brandVoice: "Authority", articleType: "SEO Deep-Dive" }); }}>
-                      New Client
-                    </button>
-                    <button className="btn-sec" style={{ padding: "10px 20px", fontSize: 10 }} onClick={() => { setStep(1); setOutput(null); }}>
-                      New Article
-                    </button>
-                  </div>
-                </div>
- 
-                {/* Section tabs */}
-                <div style={{ borderBottom: "1.5px solid #E0DAD0", display: "flex", gap: 0, overflowX: "auto", marginBottom: 0 }}>
-                  <button className={`section-tab ${activeSection === null ? "active" : ""}`} onClick={() => setActiveSection(null)}>All</button>
-                  {sectionLabels.map(s => (
-                    <button key={s.key} className={`section-tab ${activeSection === s.key ? "active" : ""}`} onClick={() => setActiveSection(s.key)}>
-                      {s.icon} {s.label}
-                    </button>
-                  ))}
-                </div>
- 
-                {/* Content */}
-                <div style={{ background: "#fff", border: "1.5px solid #E0DAD0", borderTop: "none", padding: "32px" }}>
-                  {(activeSection === null || activeSection === "titles") && output.titles && (
-                    <Section label="Article Titles" accent="#C8A45A">
-                      <pre style={{ whiteSpace: "pre-wrap", fontFamily: "'DM Mono'", fontSize: 12, lineHeight: 1.9, color: "#333" }}>{output.titles}</pre>
-                    </Section>
-                  )}
-                  {(activeSection === null || activeSection === "meta") && output.meta && (
-                    <Section label="Meta Description" accent="#6AB8A0">
-                      <pre style={{ whiteSpace: "pre-wrap", fontFamily: "'DM Mono'", fontSize: 12, lineHeight: 1.9, color: "#333" }}>{output.meta}</pre>
-                    </Section>
-                  )}
-                  {(activeSection === null || activeSection === "article") && output.article && (
-                    <Section label="Full Article" accent="#1a1a1a">
-                      <pre style={{ whiteSpace: "pre-wrap", fontFamily: "'DM Mono'", fontSize: 12, lineHeight: 2, color: "#333" }}>{output.article}</pre>
-                    </Section>
-                  )}
-                  {(activeSection === null || activeSection === "social") && output.social && (
-                    <Section label="5 Social Posts" accent="#8A6AFF">
-                      <pre style={{ whiteSpace: "pre-wrap", fontFamily: "'DM Mono'", fontSize: 12, lineHeight: 2, color: "#333" }}>{output.social}</pre>
-                    </Section>
-                  )}
-                  {(activeSection === null || activeSection === "email") && output.email && (
-                    <Section label="Email Newsletter" accent="#D4634A">
-                      <pre style={{ whiteSpace: "pre-wrap", fontFamily: "'DM Mono'", fontSize: 12, lineHeight: 2, color: "#333" }}>{output.email}</pre>
-                    </Section>
-                  )}
-                </div>
- 
-                {/* Package summary */}
-                <div style={{ marginTop: 16, padding: "16px 24px", background: "#1a1a1a", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 2, color: "#666", textTransform: "uppercase" }}>
-                    {form.articleType} · {form.brandVoice} Voice · "{form.keyword}"
-                  </div>
-                  <div style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 2, color: "#4a8a4a", textTransform: "uppercase" }}>
-                    ✓ Package Complete
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+      <div class="output-box">
+        <div class="section-label">Article Titles</div><div class="section-content" id="out-titles"></div>
+        <div class="section-label">Meta Description</div><div class="section-content" id="out-meta"></div>
+        <div class="section-label">Full Article</div><div class="section-content" id="out-article"></div>
+        <div class="section-label">5 Social Posts</div><div class="section-content" id="out-social"></div>
+        <div class="section-label">Email Newsletter</div><div class="section-content" id="out-email"></div>
       </div>
     </div>
-  );
+  </div>
+</div>
+<script>
+let selectedVoice='Authority',selectedType='SEO Deep-Dive',fullOutput='';
+function selectVoice(el,v){document.querySelectorAll('.voice-card').forEach(c=>c.classList.remove('active'));el.classList.add('active');selectedVoice=v;}
+function selectType(el,t){document.querySelectorAll('.type-card').forEach(c=>c.classList.remove('active'));document.querySelectorAll('.type-card .check').forEach(s=>s.style.display='none');el.classList.add('active');el.querySelector('.check').style.display='inline';selectedType=t;}
+function buildPrompt(d){
+  const voices={'Authority':'Write with commanding expertise. Use data, cite trends, make bold declarative statements. Tone: confident, direct, no fluff.','Conversational':'Write like a trusted industry friend. Use contractions, short sentences. Tone: warm, approachable, relatable.','Bold & Edgy':'Challenge conventions. Open with a contrarian take. Tone: disruptive, fearless, sharp.','Educational':'Break complex concepts into clear digestible steps. Use numbered lists, examples, analogies.'};
+  const types={'SEO Deep-Dive':'Hook to Problem framing to 5 detailed sections with H2s to Practical takeaways to CTA','Thought Leadership':'Bold opening claim to Supporting argument x3 to Industry trend tie-in to Forward-looking close','How-To Guide':'Problem to Why this matters to 7 actionable steps to Common mistakes to Result','Case Study Story':'Before state to The challenge to The approach to The results with numbers to What this means for you'};
+  return `You are a senior content strategist writing for ${d.agencyName}, a marketing agency specializing in ${d.agencySpecialty}.\n\nBRAND VOICE: ${voices[d.voice]}\nTARGET AUDIENCE: ${d.targetAudience}\nARTICLE TYPE: ${d.type}\nStructure: ${types[d.type]}\nTOPIC: ${d.topic}\nPRIMARY KEYWORD: "${d.keyword}" include naturally 4-6 times.\n\nProduce this complete package using these exact headers:\n\n## ARTICLE TITLE\n(3 title options, mark strongest with star)\n\n## META DESCRIPTION\n(155 chars max, include keyword)\n\n## FULL ARTICLE\n(1,400+ words, H2 and H3 subheadings, strong hook, clear CTA)\n\n## 5 SOCIAL POSTS\n(LinkedIn, Twitter, Instagram, Facebook, TikTok - each stands alone)\n\n## EMAIL NEWSLETTER SUMMARY\n(150-200 words, warm opener, end with [READ THE FULL ARTICLE])\n\nNo filler phrases. Every section delivers one concrete actionable insight.`;}
+async function generate(){
+  const agencyName=document.getElementById('agencyName').value.trim(),agencySpecialty=document.getElementById('agencySpecialty').value.trim(),targetAudience=document.getElementById('targetAudience').value.trim(),topic=document.getElementById('topic').value.trim(),keyword=document.getElementById('keyword').value.trim();
+  if(!agencyName||!agencySpecialty||!targetAudience||!topic||!keyword){alert('Please fill in all fields.');return;}
+  document.getElementById('output-section').style.display='block';
+  document.getElementById('loading').style.display='block';
+  document.getElementById('error').style.display='none';
+  document.getElementById('result').style.display='none';
+  window.scrollTo({top:document.getElementById('output-section').offsetTop-20,behavior:'smooth'});
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:buildPrompt({agencyName,agencySpecialty,targetAudience,topic,keyword,voice:selectedVoice,type:selectedType})}]})});
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const text=data.content?.find(b=>b.type==='text')?.text||'';
+    fullOutput=text;
+    const get=(label,next)=>{const s=text.indexOf('## '+label),e=next?text.indexOf('## '+next):text.length;return s===-1?'':text.slice(s+label.length+4,e).trim();};
+    document.getElementById('out-titles').textContent=get('ARTICLE TITLE','META DESCRIPTION');
+    document.getElementById('out-meta').textContent=get('META DESCRIPTION','FULL ARTICLE');
+    document.getElementById('out-article').textContent=get('FULL ARTICLE','5 SOCIAL POSTS');
+    document.getElementById('out-social').textContent=get('5 SOCIAL POSTS','EMAIL NEWSLETTER SUMMARY');
+    document.getElementById('out-email').textContent=get('EMAIL NEWSLETTER SUMMARY',null);
+    document.getElementById('result-agency').textContent=agencyName;
+    document.getElementById('loading').style.display='none';
+    document.getElementById('result').style.display='block';
+  }catch(e){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error').style.display='block';
+    document.getElementById('error').textContent='Error: '+(e.message||'Something went wrong. Check your API key in Vercel environment variables.');
+  }
 }
- 
-function Section({ label, accent, children }) {
-  return (
-    <div style={{ marginBottom: 40 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-        <div style={{ width: 3, height: 20, background: accent, flexShrink: 0 }} />
-        <div style={{ fontFamily: "'DM Mono'", fontSize: 10, letterSpacing: 3, color: "#999", textTransform: "uppercase" }}>{label}</div>
-      </div>
-      {children}
-    </div>
-  );
-}
+function copyAll(){navigator.clipboard.writeText(fullOutput).then(()=>alert('Copied!'));}
+function reset(){document.getElementById('output-section').style.display='none';window.scrollTo({top:0,behavior:'smooth'});}
+</script>
+</body>
+</html>
