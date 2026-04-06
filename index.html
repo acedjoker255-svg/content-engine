@@ -113,7 +113,7 @@ async function generate(){
   document.getElementById('result').style.display='none';
   window.scrollTo({top:document.getElementById('output-section').offsetTop-20,behavior:'smooth'});
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:buildPrompt({agencyName,agencySpecialty,targetAudience,topic,keyword,voice:selectedVoice,type:selectedType})}]})});
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:buildPrompt({agencyName,agencySpecialty,targetAudience,topic,keyword,voice:selectedVoice,type:selectedType})}]})});
     const data=await res.json();
     if(data.error)throw new Error(data.error.message);
     const text=data.content?.find(b=>b.type==='text')?.text||'';
